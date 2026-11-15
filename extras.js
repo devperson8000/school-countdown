@@ -368,6 +368,26 @@
     }
   }
 
+  function animateDigitChange(node) {
+    if (!node || reduced || document.body.classList.contains("no-extra-motion")) return;
+    if (typeof node.animate !== "function") return;
+    try {
+      node.animate(
+        [
+          { opacity: 0.78, transform: "translate3d(0, 2px, 0)" },
+          { opacity: 1, transform: "translate3d(0, 0, 0)" }
+        ],
+        {
+          duration: 135,
+          easing: "cubic-bezier(.2,.7,.25,1)",
+          fill: "none"
+        }
+      );
+    } catch (error) {
+      // The digits still update normally if Web Animations are unavailable.
+    }
+  }
+
   function syncFullscreenTimer() {
     var stage = $("#timer-fullscreen");
     if (!stage) return;
@@ -376,11 +396,7 @@
       var destination = $('[data-copy="' + id + '"]', stage);
       if (source && destination && destination.textContent !== source.textContent) {
         destination.textContent = source.textContent;
-        if (!reduced && !document.body.classList.contains("no-extra-motion")) {
-          destination.classList.remove("digit-changed");
-          void destination.offsetWidth;
-          destination.classList.add("digit-changed");
-        }
+        animateDigitChange(destination);
       }
     });
   }
@@ -791,11 +807,7 @@
       var observer = new MutationObserver(function () {
         if (node.textContent !== previous) {
           previous = node.textContent;
-          if (!reduced && !document.body.classList.contains("no-extra-motion")) {
-            node.classList.remove("digit-changed");
-            void node.offsetWidth;
-            node.classList.add("digit-changed");
-          }
+          animateDigitChange(node);
         }
       });
       observer.observe(node, {childList:true,characterData:true,subtree:true});
