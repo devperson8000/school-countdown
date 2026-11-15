@@ -3,9 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b12">
-  <meta name="description" content="A live countdown to the end of school on Thursday 3 December 2026 at 3:15 pm Sydney time.">
-  <title>School's Almost Out — The Countdown</title>
+  <meta name="theme-color" content="#080d17">
+  <meta name="description" content="Counting down to the final school bell.">
+  <meta property="og:title" content="School's Out — Live Countdown">
+  <meta property="og:description" content="Counting down to the final school bell.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="School's Out — Live Countdown">
+  <meta name="twitter:description" content="Counting down to the final school bell.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>School's Out — Live Countdown</title>
   <style>
     :root {
       color-scheme: dark;
@@ -576,7 +582,12 @@
   <div class="page">
     <header>
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">↗</div>
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+            <path d="M7 17.5c1.7-1.6 2.3-3.8 2.5-7 .2-4.2 1.1-6.5 2.5-6.5s2.3 2.3 2.5 6.5c.2 3.2.8 5.4 2.5 7H7Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M5.5 17.5h13M10.5 20a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
         <span>School countdown</span>
       </div>
       <div class="live-status"><span class="live-dot"></span><span>Live countdown</span></div>
