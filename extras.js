@@ -213,7 +213,7 @@
     name = safeName(name);
     var brand = $(".brand span");
     if (brand) brand.textContent = name ? "School countdown · " + name : "School countdown";
-    document.title = name ? name + "'s School Countdown" : "School's Almost Out — The Countdown";
+    document.title = name ? name + "'s School Countdown" : "School's Out — Live Countdown";
     storage.set("name", name);
   }
 
