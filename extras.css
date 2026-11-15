@@ -967,6 +967,7 @@ body[data-phase="finished"] .timer { box-shadow: 0 35px 105px rgba(0,0,0,.4),0 0
   animation-direction: reverse;
 }
 @keyframes fullscreen-orbit { to { transform: rotate(360deg) scale(1.035); } }
+.timer-fullscreen.fullscreen-opening,
 .timer-fullscreen:fullscreen,
 .timer-fullscreen.fallback-fullscreen {
   display: grid;
