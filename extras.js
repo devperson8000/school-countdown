@@ -764,7 +764,7 @@
     });
     var name = $("#name-input");
     if (name) name.addEventListener("input", function () { applyName(name.value); });
-    var timerNumbers = $(".number");
+    var timerNumbers = $$(".number");
     timerNumbers.forEach(function (node) {
       var previous = node.textContent;
       var observer = new MutationObserver(function () {
