@@ -21,7 +21,8 @@
   var bellSequence = [];
   var logoClicks = 0;
   var logoTimer = 0;
-  var secretBuffer = "";
+  var konamiBuffer = "";
+  var secretWordBuffer = "";
   var secretTimer = 0;
   var pickedUnits = [];
   var gameScore = 0;
@@ -150,7 +151,7 @@
     game.className = "bell-game";
     game.id = "bell-game";
     game.setAttribute("aria-hidden", "true");
-    game.innerHTML = '<div class="bell-game-card"><div class="bell-game-top"><div><div class="panel-kicker">Tiny hidden challenge</div><h3>Bell catcher</h3><p>Catch the bell five times before it escapes. It gets quicker every time.</p></div><button class="extra-close" type="button" aria-label="Close game" data-action="close-game">×</button></div><div class="game-arena" id="game-arena"><button class="bell-target" id="bell-target" type="button" aria-label="Catch the bell">🔔</button></div><div class="bell-game-footer"><span class="game-score" id="game-score">0 / 5 caught</span><button class="extra-btn" type="button" data-action="restart-game">Restart</button></div></div>';
+    game.innerHTML = '<div class="bell-game-card"><div class="bell-game-top"><div><div class="panel-kicker">Tiny hidden challenge</div><h3>Bell catcher</h3><p>Catch the bell five times. It jumps to a new spot after every catch.</p></div><button class="extra-close" type="button" aria-label="Close game" data-action="close-game">×</button></div><div class="game-arena" id="game-arena"><button class="bell-target" id="bell-target" type="button" aria-label="Catch the bell">🔔</button></div><div class="bell-game-footer"><span class="game-score" id="game-score">0 / 5 caught</span><button class="extra-btn" type="button" data-action="restart-game">Restart</button></div></div>';
     document.body.appendChild(game);
 
     applyTheme(storage.get("theme", "midnight"));
@@ -512,11 +513,11 @@
     if (event.key === "?") { openPanel(); toast("Explore the control room for shortcuts and secrets"); return; }
 
     var code = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
-    secretBuffer = secretBuffer + "|" + event.key;
-    if (secretBuffer.length > 100) secretBuffer = secretBuffer.slice(-100);
-    var entered = secretBuffer.split("|").filter(Boolean);
+    konamiBuffer = konamiBuffer + "|" + event.key;
+    if (konamiBuffer.length > 100) konamiBuffer = konamiBuffer.slice(-100);
+    var entered = konamiBuffer.split("|").filter(Boolean);
     if (entered.slice(-code.length).join("|").toLowerCase() === code.join("|").toLowerCase()) {
-      secretBuffer = "";
+      konamiBuffer = "";
       secretUnlock("KONAMI CODE ACCEPTED · Retro mode unlocked");
     }
 
@@ -526,11 +527,11 @@
   }
 
   function secretWord(letter) {
-    secretBuffer = (secretBuffer.replace(/[^a-z]/g, "") + letter).slice(-4);
+    secretWordBuffer = (secretWordBuffer + letter).slice(-4);
     window.clearTimeout(secretTimer);
-    secretTimer = window.setTimeout(function () { secretBuffer = ""; }, 1800);
-    if (secretBuffer === "bell") {
-      secretBuffer = "";
+    secretTimer = window.setTimeout(function () { secretWordBuffer = ""; }, 1800);
+    if (secretWordBuffer === "bell") {
+      secretWordBuffer = "";
       previewCelebration();
     }
   }
@@ -588,6 +589,23 @@
     if (footer) footer.addEventListener("dblclick", function () {
       secretUnlock("SECRET STRETCH · You found the hidden shortcut");
     });
+
+    var previousSecond = null;
+    var finishSounded = false;
+    window.setInterval(function () {
+      var left = target - Date.now();
+      if (left <= 0 && !finishSounded) {
+        finishSounded = true;
+        if (soundOn) bellSound();
+      } else if (left > 0 && left <= 10000 && soundOn) {
+        var count = Math.ceil(left / 1000);
+        if (count !== previousSecond) {
+          previousSecond = count;
+          var ctx = getAudio();
+          if (ctx) tone(460 + count * 42, ctx.currentTime, .12, .045, "triangle");
+        }
+      }
+    }, 200);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize);
