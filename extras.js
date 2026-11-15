@@ -319,13 +319,20 @@
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
     $("#feature-toggle")?.setAttribute("aria-expanded", "true");
+    var closeButton = $('[data-action="close-panel"]',panel);
+    if (closeButton) closeButton.focus({preventScroll:true});
   }
   function closePanel() {
     var panel = $("#feature-panel");
     if (!panel) return;
+    var wasOpen = panel.classList.contains("open");
     panel.classList.remove("open");
     panel.setAttribute("aria-hidden", "true");
     $("#feature-toggle")?.setAttribute("aria-expanded", "false");
+    if (wasOpen) {
+      var trigger = $('[data-action="panel"]');
+      if (trigger) trigger.focus({preventScroll:true});
+    }
   }
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -702,6 +709,19 @@
     });
     var bell = $("#bell-target");
     if (bell) bell.addEventListener("click", catchBell);
+    $(".unit").forEach(function (unit) {
+      var number = unit.querySelector(".number");
+      var label = unit.querySelector(".unit-label");
+      unit.setAttribute("role","button");
+      unit.setAttribute("tabindex","0");
+      unit.setAttribute("aria-label","Copy " + (label ? label.textContent : "countdown") + " remaining");
+      unit.addEventListener("keydown",function(event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          unit.dispatchEvent(new MouseEvent("click",{bubbles:true}));
+        }
+      });
+    });
     var timer = $(".timer");
     if (timer) timer.addEventListener("click", function (event) {
       if (event.target.closest(".unit")) return;
