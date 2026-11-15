@@ -857,8 +857,10 @@
         ids.seconds.textContent = pad(seconds);
 
         var phase = choosePhase(remaining);
-        setPhase(phase);
-        updateCopy(remaining);
+        if (phase !== previousPhase) {
+          setPhase(phase);
+          updateCopy(remaining);
+        }
 
         if (remaining > 0 && remaining <= 10000) {
           var count = Math.ceil(remaining / 1000);
