@@ -108,6 +108,7 @@
       '<button class="theme-swatch" data-theme-choice="aurora" aria-pressed="false"><span class="swatch-dot" style="--swatch:#8df2c7"></span>Aurora</button>' +
       '<button class="theme-swatch" data-theme-choice="sunset" aria-pressed="false"><span class="swatch-dot" style="--swatch:#ff9abd"></span>Sunset</button>' +
       '<button class="theme-swatch" data-theme-choice="mono" aria-pressed="false"><span class="swatch-dot" style="--swatch:#dce5f2"></span>Mono</button>' +
+      '<button class="theme-swatch" data-theme-choice="retro" aria-pressed="false"><span class="swatch-dot" style="--swatch:#c5ff70"></span>Arcade</button>' +
       '</div><p class="panel-help">Your choice is saved on this device.</p></section>' +
       '<section class="panel-section">' +
       '<div class="panel-control-row"><div class="panel-control-copy"><strong>Countdown sound</strong><small>Final seconds + finish bell</small></div><label class="extra-switch"><input id="sound-toggle" type="checkbox" ' + (soundOn ? "checked" : "") + '><span></span></label></div>' +
@@ -135,6 +136,14 @@
       '<div class="runway-meta"><span>30-day runway</span><strong id="next-milestone">Next: final 24 hours</strong></div></div>' +
       '<div class="extra-card"><div class="extra-card-head"><span class="extra-card-title">School survival kit</span><span class="extra-card-subtitle">A little boost</span></div>' +
       '<div class="boost-line" id="boost-line">You are closer to the finish than you were yesterday.</div><button class="boost-action" type="button" data-action="boost">Give me another boost ↗</button></div>' +
+      '<div class="extra-card checkpoint-card"><div class="extra-card-head"><span class="extra-card-title">Bell checkpoints</span><span class="extra-card-subtitle">Five moments to victory</span></div>' +
+      '<div class="checkpoint-list" id="checkpoint-list">' +
+      '<button class="checkpoint" type="button" data-checkpoint="day"><strong>24 hours</strong><small>One day left</small></button>' +
+      '<button class="checkpoint" type="button" data-checkpoint="hour"><strong>1 hour</strong><small>Final hour</small></button>' +
+      '<button class="checkpoint" type="button" data-checkpoint="ten"><strong>10 minutes</strong><small>Home stretch</small></button>' +
+      '<button class="checkpoint" type="button" data-checkpoint="minute"><strong>60 seconds</strong><small>Last minute</small></button>' +
+      '<button class="checkpoint" type="button" data-checkpoint="bell"><strong>3:15 PM</strong><small>The last bell</small></button>' +
+      '</div></div>' +
       '<div class="clock-line"><span>SYDNEY CLOCK <strong id="sydney-clock">--:--:--</strong></span><span>YOUR STATUS <strong id="personal-status">Final stretch in progress</strong></span><span id="secret-badge">✦ secret level unlocked</span></div>';
     var main = $("main");
     var note = $(".bottom-note");
@@ -209,6 +218,21 @@
     var next = $("#next-milestone");
     var status = $("#personal-status");
     var ms = target - Date.now();
+    var checkpointRules = [
+      {id:"day", at:86400000, detail:"24 hours to go — the final school day is almost here."},
+      {id:"hour", at:3600000, detail:"One hour left — the home stretch begins."},
+      {id:"ten", at:600000, detail:"Ten minutes to go — things are getting real."},
+      {id:"minute", at:60000, detail:"The final minute. Get ready for the bell."},
+      {id:"bell", at:0, detail:"3:15 PM. The final bell. School is out."}
+    ];
+    var upcoming = checkpointRules.find(function (item) { return ms > item.at; });
+    $(".checkpoint").forEach(function (button) {
+      var rule = checkpointRules.find(function (item) { return item.id === button.dataset.checkpoint; });
+      if (!rule) return;
+      button.classList.toggle("is-reached", ms <= rule.at);
+      button.classList.toggle("is-next", !!upcoming && upcoming.id === rule.id);
+      button.setAttribute("aria-pressed", ms <= rule.at ? "true" : "false");
+    });
     if (next) {
       if (ms > 86400000) next.textContent = "Next: final 24 hours";
       else if (ms > 3600000) next.textContent = "Next: final hour";
@@ -457,9 +481,30 @@
     }
   }
 
+  function sparkleBurst(x, y) {
+    if (reduced || document.body.classList.contains("no-extra-motion")) return;
+    var symbols = ["✦","＋","·","✧"];
+    for (var i = 0; i < 7; i++) {
+      var sparkle = document.createElement("span");
+      sparkle.className = "sparkle";
+      sparkle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      sparkle.style.setProperty("--sx", x + "px");
+      sparkle.style.setProperty("--sy", y + "px");
+      sparkle.style.setProperty("--ss", (8 + Math.random() * 12) + "px");
+      sparkle.style.setProperty("--dx", ((Math.random() - .5) * 90) + "px");
+      sparkle.style.setProperty("--dy", ((Math.random() - .5) * 80 - 20) + "px");
+      document.body.appendChild(sparkle);
+      window.setTimeout(function (node) { return function () { node.remove(); }; }(sparkle), 850);
+    }
+  }
+
   function clickTimerUnit(event) {
     var unit = event.target.closest(".unit");
     if (!unit) return;
+    sparkleBurst(event.clientX, event.clientY);
+    unit.classList.remove("unit-tapped");
+    void unit.offsetWidth;
+    unit.classList.add("unit-tapped");
     var sequence = ["days", "hours", "minutes", "seconds"];
     var id = unit.querySelector(".number")?.id;
     if (!id) return;
@@ -474,12 +519,28 @@
       pickedUnits = id === "days" ? ["days"] : [];
     }
     var value = unit.querySelector(".number").textContent;
-    copyText(value + " " + id);
+    toast(value + " " + id + " left · Tap tiles in order to find a secret.");
   }
 
   function onClick(event) {
     var theme = event.target.closest("[data-theme-choice]");
     if (theme) { applyTheme(theme.dataset.themeChoice); toast(theme.textContent.trim() + " theme applied"); return; }
+    var checkpoint = event.target.closest("[data-checkpoint]");
+    if (checkpoint) {
+      var threshold = {day:86400000,hour:3600000,ten:600000,minute:60000,bell:0}[checkpoint.dataset.checkpoint];
+      var title = checkpoint.querySelector("strong")?.textContent || "Milestone";
+      var detail = target - Date.now() <= threshold ? "UNLOCKED · " : "UP NEXT · ";
+      var messages = {
+        day: "The final 24-hour stretch begins.",
+        hour: "One hour until the last bell.",
+        ten: "Ten minutes until freedom.",
+        minute: "One minute left. Here we go.",
+        bell: "Thursday 3 December · 3:15 PM · School's out."
+      };
+      toast(detail + title + " · " + messages[checkpoint.dataset.checkpoint]);
+      if (soundOn && target - Date.now() <= threshold) bellSound();
+      return;
+    }
     var actionButton = event.target.closest("[data-action]");
     if (!actionButton) return;
     var action = actionButton.dataset.action;
@@ -504,7 +565,7 @@
     if (typing) return;
     if (event.key.toLowerCase() === "f" && !event.ctrlKey && !event.metaKey) { toggleFocus(); return; }
     if (event.key.toLowerCase() === "t" && !event.ctrlKey && !event.metaKey) {
-      var themes = ["midnight", "aurora", "sunset", "mono"];
+      var themes = ["midnight", "aurora", "sunset", "mono", "retro"];
       var active = storage.get("theme", "midnight");
       applyTheme(themes[(themes.indexOf(active) + 1) % themes.length]);
       toast("Theme changed · " + storage.get("theme", "midnight"));
@@ -577,6 +638,21 @@
     });
     var name = $("#name-input");
     if (name) name.addEventListener("input", function () { applyName(name.value); });
+    var timerNumbers = $(".number");
+    timerNumbers.forEach(function (node) {
+      var previous = node.textContent;
+      var observer = new MutationObserver(function () {
+        if (node.textContent !== previous) {
+          previous = node.textContent;
+          if (!reduced && !document.body.classList.contains("no-extra-motion")) {
+            node.classList.remove("digit-changed");
+            void node.offsetWidth;
+            node.classList.add("digit-changed");
+          }
+        }
+      });
+      observer.observe(node, {childList:true,characterData:true,subtree:true});
+    });
     var bell = $("#bell-target");
     if (bell) bell.addEventListener("click", catchBell);
     var timer = $(".timer");
@@ -589,7 +665,31 @@
     if (footer) footer.addEventListener("dblclick", function () {
       secretUnlock("SECRET STRETCH · You found the hidden shortcut");
     });
+    document.addEventListener("click", function (event) {
+      var panel = $("#feature-panel");
+      var action = event.target.closest(".extra-actions");
+      if (panel && panel.classList.contains("open") && !panel.contains(event.target) && !action) closePanel();
+    });
+    document.addEventListener("pointerdown", function (event) {
+      if (event.target.closest(".timer,.extra-card,.extra-action,.extra-btn,.checkpoint,.bell-target")) {
+        sparkleBurst(event.clientX,event.clientY);
+      }
+    }, {passive:true});
 
+    var glow = document.createElement("div");
+    glow.className = "cursor-glow";
+    glow.setAttribute("aria-hidden", "true");
+    document.body.appendChild(glow);
+    if (!reduced && window.matchMedia && window.matchMedia("(pointer:fine)").matches) {
+      var pointerFrame = 0;
+      document.addEventListener("pointermove", function (event) {
+        if (pointerFrame) return;
+        pointerFrame = window.requestAnimationFrame(function () {
+          pointerFrame = 0;
+          glow.style.transform = "translate3d(" + event.clientX + "px," + event.clientY + "px,0) translate(-50%,-50%)";
+        });
+      }, {passive:true});
+    }
     var previousSecond = null;
     var finishSounded = false;
     window.setInterval(function () {
