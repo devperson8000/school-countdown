@@ -654,7 +654,6 @@ h1 .accent {
   font-weight: 720;
   letter-spacing: -.085em;
   text-shadow: 0 0 40px var(--extra-glow),0 6px 18px rgba(0,0,0,.22);
-  will-change: transform,filter;
 }
 .number.digit-changed {
   animation: digit-arrive .42s cubic-bezier(.18,1.15,.3,1);
