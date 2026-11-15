@@ -163,6 +163,27 @@
     game.innerHTML = '<div class="bell-game-card"><div class="bell-game-top"><div><div class="panel-kicker">Tiny hidden challenge</div><h3>Bell catcher</h3><p>Catch the bell five times. It jumps to a new spot after every catch.</p></div><button class="extra-close" type="button" aria-label="Close game" data-action="close-game">×</button></div><div class="game-arena" id="game-arena"><button class="bell-target" id="bell-target" type="button" aria-label="Catch the bell">🔔</button></div><div class="bell-game-footer"><span class="game-score" id="game-score">0 / 5 caught</span><button class="extra-btn" type="button" data-action="restart-game">Restart</button></div></div>';
     document.body.appendChild(game);
 
+    var fullscreenStage = document.createElement("section");
+    fullscreenStage.id = "timer-fullscreen";
+    fullscreenStage.className = "timer-fullscreen";
+    fullscreenStage.setAttribute("aria-label", "Full-screen school countdown");
+    fullscreenStage.setAttribute("aria-hidden", "true");
+    fullscreenStage.innerHTML =
+      '<div class="fullscreen-timer-grid">' +
+      '<div class="fullscreen-unit"><span class="fullscreen-number" data-copy="days">00</span><span class="fullscreen-label">Days</span></div>' +
+      '<div class="fullscreen-unit"><span class="fullscreen-number" data-copy="hours">00</span><span class="fullscreen-label">Hours</span></div>' +
+      '<div class="fullscreen-unit"><span class="fullscreen-number" data-copy="minutes">00</span><span class="fullscreen-label">Minutes</span></div>' +
+      '<div class="fullscreen-unit"><span class="fullscreen-number" data-copy="seconds">00</span><span class="fullscreen-label">Seconds</span></div>' +
+      '</div>';
+    document.body.appendChild(fullscreenStage);
+    document.addEventListener("fullscreenchange", function () {
+      var active = document.fullscreenElement === fullscreenStage;
+      fullscreenStage.setAttribute("aria-hidden", active || fullscreenStage.classList.contains("fallback-fullscreen") ? "false" : "true");
+      if (!active && fullscreenStage.classList.contains("fallback-fullscreen")) {
+        fullscreenStage.classList.remove("fallback-fullscreen");
+      }
+    });
+
     applyTheme(storage.get("theme", "midnight"));
     applyName(storage.get("name", ""));
     document.body.classList.toggle("no-extra-motion", storage.get("motion", reduced ? "false" : "true") !== "true");
@@ -334,12 +355,58 @@
       if (trigger) trigger.focus({preventScroll:true});
     }
   }
+  function exitTimerFullscreen() {
+    var stage = $("#timer-fullscreen");
+    if (stage) {
+      stage.classList.remove("fallback-fullscreen");
+      stage.setAttribute("aria-hidden", "true");
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(function () {});
+    }
+  }
+
+  function syncFullscreenTimer() {
+    var stage = $("#timer-fullscreen");
+    if (!stage) return;
+    ["days","hours","minutes","seconds"].forEach(function (id) {
+      var source = $("#" + id);
+      var destination = $('[data-copy="' + id + '"]', stage);
+      if (source && destination && destination.textContent !== source.textContent) {
+        destination.textContent = source.textContent;
+        if (!reduced && !document.body.classList.contains("no-extra-motion")) {
+          destination.classList.remove("digit-changed");
+          void destination.offsetWidth;
+          destination.classList.add("digit-changed");
+        }
+      }
+    });
+  }
+
   function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      var request = document.documentElement.requestFullscreen;
-      if (request) request.call(document.documentElement).then(function () { toast("Full-screen mode enabled"); }).catch(function () { toast("Full screen isn't available here."); });
-      else toast("Full screen isn't supported by this browser.");
-    } else document.exitFullscreen().catch(function () {});
+    var stage = $("#timer-fullscreen");
+    if (!stage) return;
+    if (document.fullscreenElement || stage.classList.contains("fallback-fullscreen")) {
+      exitTimerFullscreen();
+      return;
+    }
+    syncFullscreenTimer();
+    stage.classList.remove("fallback-fullscreen");
+    stage.setAttribute("aria-hidden", "false");
+    if (stage.requestFullscreen) {
+      var request;
+      try { request = stage.requestFullscreen({navigationUI:"hide"}); }
+      catch (error) { request = Promise.reject(error); }
+      if (request && typeof request.catch === "function") {
+        request.catch(function () {
+          stage.classList.add("fallback-fullscreen");
+          stage.setAttribute("aria-hidden", "false");
+        });
+      }
+    } else {
+      stage.classList.add("fallback-fullscreen");
+      stage.setAttribute("aria-hidden", "false");
+    }
   }
   function toggleFocus() {
     document.body.classList.toggle("focus-mode");
@@ -615,7 +682,12 @@
   function onKeydown(event) {
     var tag = event.target && event.target.tagName;
     var typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (event.target && event.target.isContentEditable);
-    if (event.key === "Escape") { closePanel(); closeBellGame(); return; }
+    if (event.key === "Escape") {
+      if ($("#timer-fullscreen")?.classList.contains("fallback-fullscreen") || document.fullscreenElement) exitTimerFullscreen();
+      closePanel();
+      closeBellGame();
+      return;
+    }
     if (typing) return;
     if (event.key.toLowerCase() === "f" && !event.ctrlKey && !event.metaKey) { toggleFocus(); return; }
     if (event.key.toLowerCase() === "t" && !event.ctrlKey && !event.metaKey) {
@@ -760,6 +832,7 @@
     var previousSecond = null;
     var finishSounded = false;
     window.setInterval(function () {
+      syncFullscreenTimer();
       var left = target - Date.now();
       if (left <= 0 && !finishSounded) {
         finishSounded = true;
