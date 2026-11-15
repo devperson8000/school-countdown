@@ -291,26 +291,11 @@
       "VERSION:2.0",
       "PRODID:-//School Countdown//Last Bell//EN",
       "CALSCALE:GREGORIAN",
-      "BEGIN:VTIMEZONE",
-      "TZID:Australia/Sydney",
-      "BEGIN:DAYLIGHT",
-      "TZOFFSETFROM:+1000",
-      "TZOFFSETTO:+1100",
-      "TZNAME:AEDT",
-      "DTSTART:19701004T020000",
-      "END:DAYLIGHT",
-      "BEGIN:STANDARD",
-      "TZOFFSETFROM:+1100",
-      "TZOFFSETTO:+1000",
-      "TZNAME:AEST",
-      "DTSTART:19700405T030000",
-      "END:STANDARD",
-      "END:VTIMEZONE",
       "BEGIN:VEVENT",
       "UID:school-countdown-20261203T151500@school-countdown",
       "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""),
-      "DTSTART;TZID=Australia/Sydney:20261203T151500",
-      "DTEND;TZID=Australia/Sydney:20261203T153000",
+      "DTSTART:20261203T041500Z",
+      "DTEND:20261203T043000Z",
       "SUMMARY:School is out!",
       "DESCRIPTION:The final bell. School countdown complete.",
       "END:VEVENT",
@@ -379,30 +364,92 @@
     node.textContent = boosts[index];
   }
 
+  var previewFrame = 0;
+  var previewParticles = [];
+  var previewStartedAt = 0;
+  var previewStopTimer = 0;
+
+  function previewBurst(context, x, y) {
+    var hue = Math.floor(Math.random() * 360);
+    for (var i = 0; i < 64; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 1.1 + Math.random() * 4.5;
+      previewParticles.push({
+        x:x,y:y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+        life:50 + Math.random()*35,size:1 + Math.random()*2.7,
+        hue:(hue + Math.random()*75 - 37 + 360)%360
+      });
+    }
+  }
+
+  function stopPreviewFireworks() {
+    if (previewFrame) window.cancelAnimationFrame(previewFrame);
+    previewFrame = 0;
+    previewParticles = [];
+    var canvas = $("#fireworks");
+    if (canvas) {
+      var context = canvas.getContext("2d");
+      context.clearRect(0,0,window.innerWidth,window.innerHeight);
+    }
+  }
+
+  function animatePreviewFireworks(now) {
+    var canvas = $("#fireworks");
+    if (!canvas) return;
+    var context = canvas.getContext("2d");
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    context.clearRect(0,0,width,height);
+    if (now - previewStartedAt < 7600 && Math.random() < .12) {
+      previewBurst(context,width*(.12+Math.random()*.76),height*(.12+Math.random()*.5));
+    }
+    for (var i=previewParticles.length-1;i>=0;i--) {
+      var p=previewParticles[i];
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.045;p.vx*=.986;p.vy*=.986;p.life--;
+      if(p.life<=0){previewParticles.splice(i,1);continue;}
+      context.beginPath();
+      context.fillStyle="hsla("+p.hue+",100%,72%,"+Math.min(1,p.life/20)+")";
+      context.shadowBlur=14;
+      context.shadowColor="hsla("+p.hue+",100%,72%,.7)";
+      context.arc(p.x,p.y,p.size,0,Math.PI*2);
+      context.fill();
+    }
+    context.shadowBlur=0;
+    if(now-previewStartedAt<9000||previewParticles.length) previewFrame=window.requestAnimationFrame(animatePreviewFireworks);
+    else previewFrame=0;
+  }
+
   function previewCelebration() {
     var layer = $("#celebration");
     if (!layer) return;
+    window.clearTimeout(previewStopTimer);
     layer.classList.add("show");
     layer.setAttribute("aria-hidden", "false");
     toast("Celebration preview · The real timer stays unchanged");
-    if (!reduced) {
-      var expires = Date.now() + 8500;
-      var check = window.setInterval(function () {
-        if (Date.now() > expires || target <= Date.now()) {
-          window.clearInterval(check);
-          if (target > Date.now()) {
-            layer.classList.remove("show");
-            layer.setAttribute("aria-hidden", "true");
-          }
-        }
-      }, 500);
-    } else {
-      window.setTimeout(function () {
-        if (target > Date.now()) { layer.classList.remove("show"); layer.setAttribute("aria-hidden", "true"); }
-      }, 5000);
+    if (!reduced && !document.body.classList.contains("no-extra-motion")) {
+      var canvas = $("#fireworks");
+      var ratio = Math.min(window.devicePixelRatio || 1,2);
+      canvas.width = Math.floor(window.innerWidth*ratio);
+      canvas.height = Math.floor(window.innerHeight*ratio);
+      canvas.style.width = window.innerWidth+"px";
+      canvas.style.height = window.innerHeight+"px";
+      canvas.getContext("2d").setTransform(ratio,0,0,ratio,0,0);
+      stopPreviewFireworks();
+      previewStartedAt = performance.now();
+      previewBurst(canvas.getContext("2d"),window.innerWidth*.5,window.innerHeight*.34);
+      previewBurst(canvas.getContext("2d"),window.innerWidth*.22,window.innerHeight*.46);
+      previewBurst(canvas.getContext("2d"),window.innerWidth*.78,window.innerHeight*.43);
+      previewFrame = window.requestAnimationFrame(animatePreviewFireworks);
     }
     if (soundOn) bellSound();
-    launchConfetti(100);
+    launchConfetti(140);
+    previewStopTimer = window.setTimeout(function () {
+      if (target > Date.now()) {
+        layer.classList.remove("show");
+        layer.setAttribute("aria-hidden", "true");
+        stopPreviewFireworks();
+      }
+    }, 9500);
   }
 
   function launchConfetti(count) {
@@ -501,7 +548,6 @@
   function clickTimerUnit(event) {
     var unit = event.target.closest(".unit");
     if (!unit) return;
-    sparkleBurst(event.clientX, event.clientY);
     unit.classList.remove("unit-tapped");
     void unit.offsetWidth;
     unit.classList.add("unit-tapped");
@@ -529,7 +575,8 @@
     if (checkpoint) {
       var threshold = {day:86400000,hour:3600000,ten:600000,minute:60000,bell:0}[checkpoint.dataset.checkpoint];
       var title = checkpoint.querySelector("strong")?.textContent || "Milestone";
-      var detail = target - Date.now() <= threshold ? "UNLOCKED · " : "UP NEXT · ";
+      var remaining = target - Date.now();
+      var detail = remaining <= threshold ? "UNLOCKED · " : (checkpoint.classList.contains("is-next") ? "NEXT UP · " : "LOCKED · ");
       var messages = {
         day: "The final 24-hour stretch begins.",
         hour: "One hour until the last bell.",
@@ -538,7 +585,7 @@
         bell: "Thursday 3 December · 3:15 PM · School's out."
       };
       toast(detail + title + " · " + messages[checkpoint.dataset.checkpoint]);
-      if (soundOn && target - Date.now() <= threshold) bellSound();
+      if (soundOn && remaining <= threshold) bellSound();
       return;
     }
     var actionButton = event.target.closest("[data-action]");
