@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="A live countdown to the end of school on Thursday 3 December 2026 at 3:15 pm Sydney time.">
+  <title>School's Almost Out — The Countdown</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b12;
+      --panel: rgba(16, 22, 34, .74);
+      --line: rgba(190, 211, 238, .12);
+      --muted: #8491a8;
+      --white: #f4f8ff;
+      --cyan: #68e4f4;
+      --blue: #7996ff;
+      --lime: #c9ff76;
+      --ease: cubic-bezier(.2,.8,.2,1);
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--white);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      isolation: isolate;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 28%, rgba(74, 112, 196, .17), transparent 42%),
+        radial-gradient(ellipse at 8% 90%, rgba(44, 201, 211, .08), transparent 34%),
+        radial-gradient(ellipse at 96% 8%, rgba(128, 102, 255, .09), transparent 34%),
+        linear-gradient(145deg, #090d16 0%, #080b12 55%, #0b1019 100%);
+      transition: filter 1.3s ease;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: .18;
+      background-image: radial-gradient(rgba(201, 218, 244, .55) .65px, transparent .65px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+    .ambient {
+      position: fixed;
+      width: 52vw;
+      height: 52vw;
+      min-width: 420px;
+      min-height: 420px;
+      border-radius: 50%;
+      z-index: -1;
+      pointer-events: none;
+      filter: blur(100px);
+      opacity: .13;
+      background: #2d83a5;
+      top: 18%;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: ambient-drift 18s ease-in-out infinite alternate;
+      transition: opacity 1s ease, filter 1s ease;
+    }
+    .ambient.secondary {
+      width: 30vw;
+      height: 30vw;
+      min-width: 260px;
+      min-height: 260px;
+      top: auto;
+      bottom: -18%;
+      left: 8%;
+      background: #5751b7;
+      opacity: .11;
+      animation-delay: -7s;
+    }
+    @keyframes ambient-drift {
+      from { transform: translate(-54%, -2%) scale(.92); }
+      to { transform: translate(-46%, 4%) scale(1.12); }
+    }
+    .page {
+      width: min(1120px, calc(100% - 48px));
+      min-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    header {
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(211, 225, 248, .09);
+      animation: rise-in .8s var(--ease) both;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 800;
+      color: #d8e3f6;
+    }
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(104, 228, 244, .55);
+      border-radius: 10px;
+      color: var(--cyan);
+      box-shadow: 0 0 25px rgba(104, 228, 244, .12), inset 0 0 14px rgba(104, 228, 244, .08);
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+    .live-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: #9aa8be;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 100%;
+      background: var(--lime);
+      box-shadow: 0 0 12px rgba(201,255,118,.8);
+      animation: dot-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { transform: scale(.8); opacity: .7; }
+      50% { transform: scale(1.25); opacity: 1; }
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 66px 0 58px;
+    }
+    .intro {
+      text-align: center;
+      animation: rise-in .9s .08s var(--ease) both;
+    }
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .eyebrow::before, .eyebrow::after {
+      content: "";
+      width: 26px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(104,228,244,.85));
+    }
+    .eyebrow::after { transform: rotate(180deg); }
+    h1 {
+      margin: 22px 0 0;
+      font-size: clamp(43px, 7vw, 82px);
+      line-height: .99;
+      letter-spacing: -.075em;
+      font-weight: 760;
+    }
+    h1 .accent {
+      color: transparent;
+      background: linear-gradient(105deg, #f6fbff 8%, #a6ebf2 45%, #a5b9ff 88%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      display: inline-block;
+      padding-right: .07em;
+    }
+    .subtitle {
+      margin: 19px auto 0;
+      max-width: 560px;
+      color: #96a4ba;
+      font-size: clamp(14px, 1.6vw, 17px);
+      line-height: 1.65;
+      font-weight: 450;
+    }
+    .countdown-wrap {
+      position: relative;
+      width: min(900px, 100%);
+      margin: 52px auto 0;
+      animation: rise-in 1s .18s var(--ease) both;
+    }
+    .halo {
+      position: absolute;
+      pointer-events: none;
+      width: 74%;
+      height: 150%;
+      left: 13%;
+      top: -25%;
+      border-radius: 50%;
+      border: 1px solid rgba(104, 228, 244, .05);
+      box-shadow: 0 0 80px rgba(91, 163, 219, .08), inset 0 0 80px rgba(104, 228, 244, .025);
+      animation: halo-breathe 7s ease-in-out infinite;
+      transition: all .8s var(--ease);
+    }
+    .halo::before, .halo::after {
+      content: "";
+      position: absolute;
+      inset: 7%;
+      border: 1px solid rgba(121, 150, 255, .07);
+      border-radius: 50%;
+      transform: rotate(-23deg) scaleX(1.16);
+    }
+    .halo::after {
+      inset: 14%;
+      transform: rotate(39deg) scaleX(.9);
+      border-color: rgba(104,228,244,.06);
+    }
+    @keyframes halo-breathe {
+      0%, 100% { transform: scale(.97); opacity: .65; }
+      50% { transform: scale(1.035); opacity: 1; }
+    }
+    .timer {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+      padding: 20px;
+      border: 1px solid rgba(186, 208, 239, .15);
+      border-radius: 28px;
+      background: linear-gradient(145deg, rgba(24, 32, 48, .82), rgba(12, 17, 28, .82));
+      box-shadow:
+        0 28px 90px rgba(0,0,0,.36),
+        inset 0 1px rgba(255,255,255,.055),
+        0 0 70px rgba(84, 150, 204, .06);
+      backdrop-filter: blur(22px);
+      transition: transform .7s var(--ease), border-color .7s ease, box-shadow .7s ease;
+    }
+    .unit {
+      min-width: 0;
+      min-height: 158px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 19px;
+      background: linear-gradient(155deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+      border: 1px solid rgba(224, 237, 255, .07);
+      position: relative;
+      overflow: hidden;
+    }
+    .unit::before {
+      content: "";
+      position: absolute;
+      width: 80%;
+      height: 1px;
+      left: 10%;
+      top: 0;
+      background: linear-gradient(90deg, transparent, rgba(104,228,244,.42), transparent);
+      opacity: .7;
+    }
+    .number {
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(49px, 8vw, 88px);
+      font-weight: 680;
+      line-height: 1;
+      letter-spacing: -.075em;
+      color: #f0f6ff;
+      text-shadow: 0 0 35px rgba(134, 195, 255, .11);
+      transition: color .5s ease, text-shadow .5s ease, transform .3s var(--ease);
+    }
+    .unit-label {
+      margin-top: 15px;
+      color: #8290a8;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin: 19px 6px 0;
+      color: #7e8ba3;
+      font-size: 11px;
+      letter-spacing: .06em;
+    }
+    .meta strong {
+      color: #bdc9dd;
+      font-weight: 650;
+    }
+    .target {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .target svg { color: var(--cyan); }
+    .bottom-note {
+      text-align: center;
+      margin: 40px 0 0;
+      color: #68758b;
+      font-size: 12px;
+      letter-spacing: .035em;
+      animation: rise-in 1s .26s var(--ease) both;
+    }
+    .bottom-note span {
+      color: #a6b6cf;
+      display: inline-block;
+      margin-left: 5px;
+    }
+    footer {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid rgba(211, 225, 248, .08);
+      color: #59677d;
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    footer .footer-right { color: #6d7b91; }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes card-throb {
+      0%,100% { transform: scale(1); box-shadow: 0 28px 90px rgba(0,0,0,.36), 0 0 70px rgba(84,150,204,.08); }
+      50% { transform: scale(1.012); box-shadow: 0 28px 100px rgba(0,0,0,.4), 0 0 100px rgba(104,228,244,.2); }
+    }
+    @keyframes fast-pulse {
+      0%,100% { filter: brightness(1); }
+      50% { filter: brightness(1.24); }
+    }
+    @keyframes ring-spin {
+      from { transform: rotate(0deg) scale(1); }
+      to { transform: rotate(360deg) scale(1); }
+    }
+    @keyframes number-pop {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.13); }
+      100% { transform: scale(1); }
+    }
+    body[data-phase="day"] .halo { opacity: .95; box-shadow: 0 0 110px rgba(84, 166, 232, .15); }
+    body[data-phase="hour"] .halo { animation: halo-breathe 2.8s ease-in-out infinite; border-color: rgba(104,228,244,.16); }
+    body[data-phase="hour"] .timer { animation: card-throb 3.5s ease-in-out infinite; border-color: rgba(104,228,244,.24); }
+    body[data-phase="ten-minutes"] .ambient { opacity: .24; filter: blur(80px); }
+    body[data-phase="ten-minutes"] .halo { animation: halo-breathe 1.8s ease-in-out infinite, ring-spin 34s linear infinite; border-color: rgba(104,228,244,.27); }
+    body[data-phase="ten-minutes"] .timer { animation: card-throb 1.65s ease-in-out infinite; border-color: rgba(104,228,244,.34); }
+    body[data-phase="ten-minutes"] .number { color: #dffaff; text-shadow: 0 0 34px rgba(104,228,244,.32); }
+    body[data-phase="minute"] .ambient { opacity: .32; }
+    body[data-phase="minute"] .halo { animation: halo-breathe 1s ease-in-out infinite, ring-spin 13s linear infinite; border-color: rgba(201,255,118,.38); }
+    body[data-phase="minute"] .timer { animation: card-throb .9s ease-in-out infinite; border-color: rgba(201,255,118,.38); }
+    body[data-phase="minute"] .number { color: #efffdc; text-shadow: 0 0 42px rgba(201,255,118,.28); }
+    body[data-phase="last-ten"] .countdown-wrap { z-index: 4; }
+    body[data-phase="last-ten"] .timer { border-color: rgba(201,255,118,.55); animation: card-throb .46s ease-in-out infinite; }
+    body[data-phase="last-ten"] .halo { animation: ring-spin 5s linear infinite, halo-breathe .65s ease-in-out infinite; border-color: rgba(201,255,118,.62); }
+    body[data-phase="last-ten"] .number { color: #efffdc; text-shadow: 0 0 50px rgba(201,255,118,.48); }
+    body[data-phase="last-ten"] .ambient { opacity: .4; }
+    body[data-phase="finished"] .ambient { opacity: .5; background: #3f9a91; }
+    body[data-phase="finished"] .timer { border-color: rgba(201,255,118,.32); }
+    .last-seconds {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      background: radial-gradient(ellipse at center, rgba(7,13,20,.36), rgba(7,13,20,.78) 66%);
+      backdrop-filter: blur(0);
+      transition: opacity .25s ease, visibility .25s ease, backdrop-filter .25s ease;
+    }
+    .last-seconds.show { opacity: 1; visibility: visible; backdrop-filter: blur(8px); }
+    .last-count {
+      font-size: min(50vw, 340px);
+      line-height: .8;
+      font-weight: 850;
+      letter-spacing: -.11em;
+      padding-right: .11em;
+      color: #f5ffe8;
+      text-shadow: 0 0 35px rgba(201,255,118,.45), 0 0 120px rgba(104,228,244,.35);
+      animation: last-pop .75s cubic-bezier(.16,1.4,.4,1) both;
+    }
+    @keyframes last-pop {
+      from { opacity: 0; transform: scale(.42) rotate(-8deg); filter: blur(16px); }
+      to { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+    }
+    .last-caption {
+      margin-top: 34px;
+      color: #d3e4bf;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+    }
+    .celebration {
+      position: fixed;
+      z-index: 30;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      opacity: 0;
+      visibility: hidden;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(44, 95, 116, .32), transparent 52%),
+        radial-gradient(ellipse at 50% 100%, rgba(87, 78, 174, .24), transparent 52%),
+        rgba(5, 8, 14, .95);
+      transition: opacity .8s ease, visibility .8s ease;
+    }
+    .celebration.show { opacity: 1; visibility: visible; }
+    .celebration-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .celebrate-content {
+      position: relative;
+      z-index: 2;
+      width: min(850px, 100%);
+      text-align: center;
+      transform: translateY(30px) scale(.92);
+      opacity: 0;
+      transition: transform .9s cubic-bezier(.16,1,.3,1) .12s, opacity .7s ease .12s;
+    }
+    .celebration.show .celebrate-content { transform: translateY(0) scale(1); opacity: 1; }
+    .celebrate-kicker {
+      color: var(--lime);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .34em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .celebrate-kicker::before, .celebrate-kicker::after {
+      content: "";
+      width: 30px;
+      height: 1px;
+      background: rgba(201,255,118,.65);
+    }
+    .celebrate-title {
+      margin: 27px 0 0;
+      font-size: clamp(54px, 12vw, 142px);
+      line-height: .87;
+      letter-spacing: -.095em;
+      font-weight: 900;
+      color: transparent;
+      background: linear-gradient(115deg, #fff 9%, #c6ff86 48%, #89e5ff 93%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      text-shadow: 0 0 70px rgba(155,240,191,.12);
+      animation: title-float 3.5s ease-in-out infinite;
+    }
+    @keyframes title-float {
+      0%,100% { transform: translateY(0) scale(1); filter: brightness(1); }
+      50% { transform: translateY(-8px) scale(1.025); filter: brightness(1.18); }
+    }
+    .celebrate-subtitle {
+      margin: 26px 0 0;
+      font-size: clamp(15px, 2vw, 20px);
+      color: #b5c2d7;
+      line-height: 1.6;
+    }
+    .celebrate-date {
+      margin-top: 24px;
+      color: #8494ad;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .replay {
+      margin-top: 38px;
+      appearance: none;
+      border: 1px solid rgba(201,255,118,.45);
+      background: rgba(201,255,118,.09);
+      color: #eaffd4;
+      border-radius: 999px;
+      padding: 13px 21px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .replay:hover { transform: translateY(-3px); background: rgba(201,255,118,.16); border-color: rgba(201,255,118,.8); }
+    .replay:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+    .confetti-piece {
+      position: fixed;
+      top: -24px;
+      z-index: 31;
+      width: var(--w);
+      height: var(--h);
+      left: var(--x);
+      border-radius: 2px;
+      background: var(--c);
+      opacity: 0;
+      pointer-events: none;
+      animation: confetti-fall var(--d) cubic-bezier(.1,.65,.35,1) var(--delay) forwards;
+    }
+    @keyframes confetti-fall {
+      0% { opacity: 0; transform: translate3d(0,-8vh,0) rotate(0deg) scale(.6); }
+      8% { opacity: 1; }
+      100% { opacity: .95; transform: translate3d(var(--drift),110vh,0) rotate(var(--spin)) scale(1); }
+    }
+    @media (max-width: 700px) {
+      .page { width: min(100% - 30px, 540px); }
+      header { height: 72px; }
+      .brand { font-size: 10px; gap: 9px; }
+      .brand-mark { width: 28px; height: 28px; }
+      .live-status { font-size: 9px; letter-spacing: .08em; }
+      main { padding: 66px 0 52px; }
+      .countdown-wrap { margin-top: 42px; }
+      .timer { gap: 8px; padding: 10px; border-radius: 21px; }
+      .unit { min-height: 122px; border-radius: 14px; }
+      .number { font-size: clamp(38px, 10vw, 64px); }
+      .unit-label { margin-top: 11px; font-size: 9px; letter-spacing: .13em; }
+      .meta { font-size: 10px; margin-left: 3px; margin-right: 3px; }
+      .bottom-note { margin-top: 32px; line-height: 1.6; }
+      footer { min-height: 60px; font-size: 9px; }
+      .halo { width: 90%; left: 5%; }
+    }
+    @media (max-width: 390px) {
+      .timer { gap: 6px; padding: 8px; }
+      .unit { min-height: 105px; }
+      .number { font-size: 36px; }
+      .unit-label { font-size: 8px; }
+      .meta { flex-direction: column; align-items: flex-start; gap: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+      .confetti-piece { display: none; }
+    }
+  </style>
+</head>
+<body data-phase="normal">
+  <div class="ambient"></div>
+  <div class="ambient secondary"></div>
+
+  <div class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">↗</div>
+        <span>School countdown</span>
+      </div>
+      <div class="live-status"><span class="live-dot"></span><span>Live countdown</span></div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div class="eyebrow" id="eyebrow">The finish line is getting closer</div>
+        <h1 id="headline">One more push.<br><span class="accent">Then freedom.</span></h1>
+        <p class="subtitle" id="subtitle">The final stretch is on. Keep going — your afternoon is getting closer every second.</p>
+      </section>
+
+      <section class="countdown-wrap" aria-label="Time remaining until school finishes">
+        <div class="halo" aria-hidden="true"></div>
+        <div class="timer">
+          <div class="unit"><span class="number" id="days">00</span><span class="unit-label">Days</span></div>
+          <div class="unit"><span class="number" id="hours">00</span><span class="unit-label">Hours</span></div>
+          <div class="unit"><span class="number" id="minutes">00</span><span class="unit-label">Minutes</span></div>
+          <div class="unit"><span class="number" id="seconds">00</span><span class="unit-label">Seconds</span></div>
+        </div>
+        <div class="meta">
+          <div class="target">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5v13M1.5 8h13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="8" r="5.2" stroke="currentColor" stroke-width="1.2"/></svg>
+            <strong>Thursday · 3 December 2026</strong>
+          </div>
+          <div>3:15 PM <strong>· Sydney time</strong></div>
+        </div>
+      </section>
+
+      <p class="bottom-note" id="bottom-note">Every second counts.<span>You've got this.</span></p>
+    </main>
+
+    <footer>
+      <span>THE FINAL STRETCH</span>
+      <span class="footer-right">Made for the last bell <span aria-hidden="true">✦</span></span>
+    </footer>
+  </div>
+
+  <div class="last-seconds" id="last-seconds" aria-hidden="true">
+    <div class="last-count" id="last-count">10</div>
+    <div class="last-caption">THE FINAL SECONDS</div>
+  </div>
+
+  <div class="celebration" id="celebration" aria-hidden="true">
+    <canvas class="celebration-canvas" id="fireworks"></canvas>
+    <div class="celebrate-content">
+      <div class="celebrate-kicker">The bell has rung</div>
+      <h2 class="celebrate-title">SCHOOL'S<br>OUT.</h2>
+      <p class="celebrate-subtitle">You made it. Close the books, leave the stress behind<br>and enjoy every second of your freedom.</p>
+      <div class="celebrate-date">Thursday · 3 December · 3:15 PM AEDT</div>
+      <button class="replay" id="replay" type="button">Replay the celebration ↗</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var target = new Date("2026-12-03T15:15:00+11:00").getTime();
+      var ids = {
+        days: document.getElementById("days"),
+        hours: document.getElementById("hours"),
+        minutes: document.getElementById("minutes"),
+        seconds: document.getElementById("seconds"),
+        eyebrow: document.getElementById("eyebrow"),
+        headline: document.getElementById("headline"),
+        subtitle: document.getElementById("subtitle"),
+        note: document.getElementById("bottom-note"),
+        lastLayer: document.getElementById("last-seconds"),
+        lastCount: document.getElementById("last-count"),
+        celebration: document.getElementById("celebration"),
+        replay: document.getElementById("replay"),
+        canvas: document.getElementById("fireworks")
+      };
+      var previousPhase = "";
+      var previousLastCount = "";
+      var celebrationStarted = false;
+      var particles = [];
+      var frame = 0;
+      var celebrationStart = 0;
+      var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function pad(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function setPhase(phase) {
+        if (phase === previousPhase) return;
+        document.body.setAttribute("data-phase", phase);
+        previousPhase = phase;
+      }
+
+      function choosePhase(ms) {
+        if (ms <= 0) return "finished";
+        if (ms <= 10000) return "last-ten";
+        if (ms <= 60000) return "minute";
+        if (ms <= 600000) return "ten-minutes";
+        if (ms <= 3600000) return "hour";
+        if (ms <= 86400000) return "day";
+        return "normal";
+      }
+
+      function updateCopy(ms) {
+        if (ms <= 0) {
+          ids.eyebrow.textContent = "The moment you've been waiting for";
+          ids.headline.innerHTML = "The bell has rung.<br><span class=\"accent\">You're free.</span>";
+          ids.subtitle.textContent = "It's 3:15. School is officially out — go enjoy it.";
+          ids.note.innerHTML = "No more countdown.<span>Just freedom.</span>";
+          return;
+        }
+        if (ms <= 10000) {
+          ids.eyebrow.textContent = "This is it";
+          ids.headline.innerHTML = "The final<br><span class=\"accent\">moments.</span>";
+          ids.subtitle.textContent = "Get ready. The finish line is right here.";
+          ids.note.innerHTML = "Almost there.<span>Almost there.</span>";
+        } else if (ms <= 60000) {
+          ids.eyebrow.textContent = "Under a minute to go";
+          ids.headline.innerHTML = "The final<br><span class=\"accent\">minute.</span>";
+          ids.subtitle.textContent = "This is the home stretch. Every second is the last one.";
+          ids.note.innerHTML = "The last 60 seconds.<span>Make them count.</span>";
+        } else if (ms <= 600000) {
+          ids.eyebrow.textContent = "Final ten minutes";
+          ids.headline.innerHTML = "Freedom is<br><span class=\"accent\">so close.</span>";
+          ids.subtitle.textContent = "Ten minutes or less. You can practically hear the bell.";
+          ids.note.innerHTML = "The clock is moving.<span>You're nearly there.</span>";
+        } else if (ms <= 3600000) {
+          ids.eyebrow.textContent = "The final hour";
+          ids.headline.innerHTML = "One last<br><span class=\"accent\">hour.</span>";
+          ids.subtitle.textContent = "The finish line is in sight. Keep that energy up.";
+          ids.note.innerHTML = "One hour left.<span>Then it's yours.</span>";
+        } else if (ms <= 86400000) {
+          ids.eyebrow.textContent = "Final day energy";
+          ids.headline.innerHTML = "Tomorrow feels<br><span class=\"accent\">pretty good.</span>";
+          ids.subtitle.textContent = "Less than a day until 3:15. The countdown is getting real.";
+          ids.note.innerHTML = "The last day is here.<span>You've got this.</span>";
+        } else {
+          ids.eyebrow.textContent = "The finish line is getting closer";
+          ids.headline.innerHTML = "One more push.<br><span class=\"accent\">Then freedom.</span>";
+          ids.subtitle.textContent = "The final stretch is on. Keep going — your afternoon is getting closer every second.";
+          ids.note.innerHTML = "Every second counts.<span>You've got this.</span>";
+        }
+      }
+
+      function resizeCanvas() {
+        var canvas = ids.canvas;
+        if (!canvas) return;
+        var ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(window.innerWidth * ratio);
+        canvas.height = Math.floor(window.innerHeight * ratio);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        var context = canvas.getContext("2d");
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      function burst(x, y, count) {
+        var total = count || 54;
+        var hue = Math.floor(Math.random() * 360);
+        for (var i = 0; i < total; i++) {
+          var angle = Math.random() * Math.PI * 2;
+          var speed = 1.2 + Math.random() * 5.2;
+          particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 55 + Math.random() * 48,
+            maxLife: 103,
+            size: 1.2 + Math.random() * 2.7,
+            hue: (hue + Math.random() * 80 - 40 + 360) % 360,
+            gravity: .035 + Math.random() * .045
+          });
+        }
+      }
+
+      function animateFireworks(now) {
+        var context = ids.canvas.getContext("2d");
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        context.clearRect(0, 0, width, height);
+
+        if (now - celebrationStart < 12500 && Math.random() < .105) {
+          burst(width * (.12 + Math.random() * .76), height * (.12 + Math.random() * .52), 42 + Math.floor(Math.random() * 28));
+        }
+
+        for (var i = particles.length - 1; i >= 0; i--) {
+          var p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= .986;
+          p.vy *= .986;
+          p.life -= 1;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          var alpha = Math.min(1, p.life / 22);
+          context.beginPath();
+          context.fillStyle = "hsla(" + p.hue + ", 100%, 72%, " + alpha + ")";
+          context.shadowBlur = 13;
+          context.shadowColor = "hsla(" + p.hue + ", 100%, 72%, .7)";
+          context.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.shadowBlur = 0;
+
+        if (now - celebrationStart < 18000 || particles.length > 0) {
+          frame = window.requestAnimationFrame(animateFireworks);
+        } else {
+          frame = 0;
+        }
+      }
+
+      function addConfetti() {
+        if (reduceMotion) return;
+        var colors = ["#c9ff76", "#68e4f4", "#92a7ff", "#ffdb85", "#ff8cc5", "#f6fbff"];
+        for (var i = 0; i < 170; i++) {
+          var piece = document.createElement("span");
+          piece.className = "confetti-piece";
+          piece.style.setProperty("--x", (Math.random() * 100) + "vw");
+          piece.style.setProperty("--w", (4 + Math.random() * 7) + "px");
+          piece.style.setProperty("--h", (7 + Math.random() * 13) + "px");
+          piece.style.setProperty("--c", colors[Math.floor(Math.random() * colors.length)]);
+          piece.style.setProperty("--d", (5 + Math.random() * 6) + "s");
+          piece.style.setProperty("--delay", (Math.random() * 1.8) + "s");
+          piece.style.setProperty("--drift", ((Math.random() - .5) * 260) + "px");
+          piece.style.setProperty("--spin", ((Math.random() - .5) * 1700) + "deg");
+          document.body.appendChild(piece);
+          window.setTimeout((function (node) {
+            return function () { if (node.parentNode) node.parentNode.removeChild(node); };
+          })(piece), 14500);
+        }
+      }
+
+      function startCelebration() {
+        if (celebrationStarted) return;
+        celebrationStarted = true;
+        ids.lastLayer.classList.remove("show");
+        ids.celebration.classList.add("show");
+        ids.celebration.setAttribute("aria-hidden", "false");
+        ids.replay.focus({preventScroll: true});
+        addConfetti();
+        if (!reduceMotion) {
+          resizeCanvas();
+          burst(window.innerWidth * .5, window.innerHeight * .36, 110);
+          burst(window.innerWidth * .22, window.innerHeight * .44, 65);
+          burst(window.innerWidth * .78, window.innerHeight * .43, 65);
+          celebrationStart = performance.now();
+          frame = window.requestAnimationFrame(animateFireworks);
+        }
+      }
+
+      function replayCelebration() {
+        particles = [];
+        if (frame) window.cancelAnimationFrame(frame);
+        if (!reduceMotion) {
+          resizeCanvas();
+          celebrationStart = performance.now();
+          burst(window.innerWidth * .5, window.innerHeight * .36, 110);
+          burst(window.innerWidth * .22, window.innerHeight * .44, 65);
+          burst(window.innerWidth * .78, window.innerHeight * .43, 65);
+          frame = window.requestAnimationFrame(animateFireworks);
+          addConfetti();
+        }
+      }
+
+      function tick() {
+        var remaining = target - Date.now();
+        var safeRemaining = Math.max(0, remaining);
+        var days = Math.floor(safeRemaining / 86400000);
+        var hours = Math.floor((safeRemaining % 86400000) / 3600000);
+        var minutes = Math.floor((safeRemaining % 3600000) / 60000);
+        var seconds = Math.floor((safeRemaining % 60000) / 1000);
+
+        ids.days.textContent = pad(days);
+        ids.hours.textContent = pad(hours);
+        ids.minutes.textContent = pad(minutes);
+        ids.seconds.textContent = pad(seconds);
+
+        var phase = choosePhase(remaining);
+        setPhase(phase);
+        updateCopy(remaining);
+
+        if (remaining > 0 && remaining <= 10000) {
+          var count = Math.ceil(remaining / 1000);
+          if (String(count) !== previousLastCount) {
+            ids.lastCount.textContent = count;
+            ids.lastCount.style.animation = "none";
+            void ids.lastCount.offsetWidth;
+            ids.lastCount.style.animation = "";
+            previousLastCount = String(count);
+          }
+          ids.lastLayer.classList.add("show");
+        } else {
+          ids.lastLayer.classList.remove("show");
+        }
+
+        if (remaining <= 0) startCelebration();
+      }
+
+      ids.replay.addEventListener("click", replayCelebration);
+      window.addEventListener("resize", function () {
+        if (celebrationStarted && !reduceMotion) resizeCanvas();
+      });
+      tick();
+      window.setInterval(tick, 250);
+    })();
+  </script>
+</body>
+</html>
