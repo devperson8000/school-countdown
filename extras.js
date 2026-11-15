@@ -178,6 +178,7 @@
     document.body.appendChild(fullscreenStage);
     document.addEventListener("fullscreenchange", function () {
       var active = document.fullscreenElement === fullscreenStage;
+      fullscreenStage.classList.remove("fullscreen-opening");
       fullscreenStage.setAttribute("aria-hidden", active || fullscreenStage.classList.contains("fallback-fullscreen") ? "false" : "true");
       if (!active && fullscreenStage.classList.contains("fallback-fullscreen")) {
         fullscreenStage.classList.remove("fallback-fullscreen");
@@ -247,7 +248,7 @@
       {id:"bell", at:0, detail:"3:15 PM. The final bell. School is out."}
     ];
     var upcoming = checkpointRules.find(function (item) { return ms > item.at; });
-    $(".checkpoint").forEach(function (button) {
+    $$(".checkpoint").forEach(function (button) {
       var rule = checkpointRules.find(function (item) { return item.id === button.dataset.checkpoint; });
       if (!rule) return;
       button.classList.toggle("is-reached", ms <= rule.at);
@@ -358,11 +359,12 @@
   function exitTimerFullscreen() {
     var stage = $("#timer-fullscreen");
     if (stage) {
-      stage.classList.remove("fallback-fullscreen");
+      stage.classList.remove("fullscreen-opening", "fallback-fullscreen");
       stage.setAttribute("aria-hidden", "true");
     }
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(function () {});
+    if (document.fullscreenElement && document.exitFullscreen) {
+      var exit = document.exitFullscreen();
+      if (exit && typeof exit.catch === "function") exit.catch(function () {});
     }
   }
 
@@ -383,29 +385,45 @@
     });
   }
 
+  function showFullscreenFallback(stage) {
+    stage.classList.remove("fullscreen-opening");
+    stage.classList.add("fallback-fullscreen");
+    stage.setAttribute("aria-hidden", "false");
+  }
+
   function toggleFullscreen() {
     var stage = $("#timer-fullscreen");
     if (!stage) return;
-    if (document.fullscreenElement || stage.classList.contains("fallback-fullscreen")) {
+    if (document.fullscreenElement || stage.classList.contains("fallback-fullscreen") || stage.classList.contains("fullscreen-opening")) {
       exitTimerFullscreen();
       return;
     }
     syncFullscreenTimer();
     stage.classList.remove("fallback-fullscreen");
+    stage.classList.add("fullscreen-opening");
     stage.setAttribute("aria-hidden", "false");
-    if (stage.requestFullscreen) {
-      var request;
-      try { request = stage.requestFullscreen({navigationUI:"hide"}); }
-      catch (error) { request = Promise.reject(error); }
-      if (request && typeof request.catch === "function") {
-        request.catch(function () {
-          stage.classList.add("fallback-fullscreen");
-          stage.setAttribute("aria-hidden", "false");
-        });
+
+    // Make the stage renderable before requesting native fullscreen. Browsers
+    // can reject requestFullscreen() when the target is display:none.
+    if (typeof stage.requestFullscreen === "function") {
+      try {
+        var request = stage.requestFullscreen({navigationUI:"hide"});
+        if (request && typeof request.then === "function") {
+          request.then(function () {
+            stage.classList.remove("fullscreen-opening");
+          }).catch(function () {
+            showFullscreenFallback(stage);
+          });
+        } else if (document.fullscreenElement === stage) {
+          stage.classList.remove("fullscreen-opening");
+        } else {
+          showFullscreenFallback(stage);
+        }
+      } catch (error) {
+        showFullscreenFallback(stage);
       }
     } else {
-      stage.classList.add("fallback-fullscreen");
-      stage.setAttribute("aria-hidden", "false");
+      showFullscreenFallback(stage);
     }
   }
   function toggleFocus() {
@@ -736,12 +754,15 @@
   }
 
   function initialize() {
-    createInterface();
-    newBoost();
+    // Install delegated controls first so a UI setup error cannot leave every
+    // button inert. The handlers resolve their targets after the UI is created.
     document.addEventListener("click", onClick);
     document.addEventListener("click", onLogoClick);
     document.addEventListener("click", clickTimerUnit);
     document.addEventListener("keydown", onKeydown);
+
+    createInterface();
+    newBoost();
 
     var sound = $("#sound-toggle");
     if (sound) sound.addEventListener("change", function () {
@@ -781,7 +802,7 @@
     });
     var bell = $("#bell-target");
     if (bell) bell.addEventListener("click", catchBell);
-    $(".unit").forEach(function (unit) {
+    $$(".unit").forEach(function (unit) {
       var number = unit.querySelector(".number");
       var label = unit.querySelector(".unit-label");
       unit.setAttribute("role","button");
